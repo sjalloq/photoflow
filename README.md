@@ -9,8 +9,14 @@ Built around a Ricoh GR II, but the camera is configuration rather than code.
 ## Install
 
 ```sh
-sudo pacman -S perl-image-exiftool imagemagick rsync
-uv tool install ~/Work/photoflow
+sudo pacman -S perl-image-exiftool imagemagick rsync   # or your distro's equivalents
+uv tool install git+https://github.com/USER/photoflow
+```
+
+Or from a checkout:
+
+```sh
+git clone https://github.com/USER/photoflow && uv tool install ./photoflow
 ```
 
 `exiftool`, `magick` and `rsync` are external programs; photoflow itself has no
@@ -82,7 +88,7 @@ somewhere other than the configured archive.
 
 ### derive
 
-Renders resized JPEGs into the web tree, using the same pipeline as `scanderive`:
+Renders resized JPEGs into the web tree:
 resample in linear light, unsharp mask back in sRGB, EXIF rotation baked into the
 pixels before the metadata is stripped. Presets (`web`, `frame`, `thumb`) come
 from the config.

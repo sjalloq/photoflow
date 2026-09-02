@@ -1,7 +1,7 @@
 """Build the ImageMagick command that turns an original into a derivative.
 
-Lifted from ~/.local/bin/scanderive, minus its DPI handling, which matters for
-scans and means nothing for a camera frame. The two ideas worth keeping:
+Adapted from an earlier scanner script, minus its DPI handling, which matters
+for a scan and means nothing for a camera frame. The two ideas worth keeping:
 
   * resample in linear light — ImageMagick otherwise resizes gamma-encoded
     sRGB, which darkens fine detail;

@@ -33,7 +33,7 @@ card.py      find the SD card (lsblk by label), mount/unmount via udisksctl
 meta.py      ONE batched exiftool call -> [Frame]
 paths.py     the archive path grammar; plan_shoots() decides every destination
 ingest.py    classify (new/skip/conflict), verified copy, .photoflow.json manifest
-imaging.py   the ImageMagick command builder (from ~/.local/bin/scanderive)
+imaging.py   the ImageMagick command builder (see Related)
 derive.py    walk the archive, mirror it into the web root
 gallery.py   render derivatives + self-contained index.html pages
 sync.py      rsync wrapper
@@ -80,7 +80,7 @@ that split: it is what makes the naming rules testable without a card.
 - **exiftool is called once per batch, not once per file.** It takes ~0.25s to
   start; a card holds hundreds of frames. Preserve the batching in `meta.read()`.
 - **Resample in linear RGB, sharpen back in sRGB.** ImageMagick otherwise resizes
-  gamma-encoded sRGB, which darkens fine detail. Inherited from `scanderive`.
+  gamma-encoded sRGB, which darkens fine detail.
 - **Timestamps are used as the camera wrote them, with no timezone conversion.**
   Converting would move frames between days for no gain.
 
@@ -117,8 +117,9 @@ Check portrait frames survive: an EXIF orientation-6 source is 4928x3264
 
 ## Related
 
-`~/.local/bin/scanderive` and `~/.local/bin/scanphoto` are the older standalone
-scan tools. `imaging.py` is a *copy* of scanderive's command builder, minus its
-DPI handling (meaningless for a camera frame); the two are free to diverge.
+`imaging.py`'s resize/sharpen pipeline came from an earlier standalone scanner
+script, minus its DPI handling (meaningful for a scan, meaningless for a camera
+frame). The two are separate copies and free to diverge.
+
 Scanned negatives are expected to land in the archive as their own source
 (`scans/negatives/…`) rather than under a camera.
