@@ -10,13 +10,13 @@ Built around a Ricoh GR II, but the camera is configuration rather than code.
 
 ```sh
 sudo pacman -S perl-image-exiftool imagemagick rsync   # or your distro's equivalents
-uv tool install git+https://github.com/USER/photoflow
+uv tool install git+https://github.com/sjalloq/photoflow
 ```
 
 Or from a checkout:
 
 ```sh
-git clone https://github.com/USER/photoflow && uv tool install ./photoflow
+git clone https://github.com/sjalloq/photoflow && uv tool install ./photoflow
 ```
 
 `exiftool`, `magick` and `rsync` are external programs; photoflow itself has no
@@ -125,3 +125,7 @@ uv run pytest
 Covers the parts worth being sure of: filename and folder grammar, RAW/JPEG
 pairing, collision handling when the camera's counter wraps, and config
 precedence. They need no card and no images.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).
