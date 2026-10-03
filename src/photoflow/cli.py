@@ -1,10 +1,10 @@
-"""Command-line entry point: photoflow <ingest|derive|gallery|sync|status>."""
+"""Command-line entry point: photoflow <ingest|derive|gallery|sync|status|inspect|review>."""
 
 import argparse
 import sys
 from pathlib import Path
 
-from . import __version__, card, config, derive, gallery, ingest, meta, paths, sync
+from . import __version__, card, config, derive, gallery, ingest, meta, paths, review, survey, sync
 
 
 def cmd_status(args, cfg):
@@ -71,6 +71,53 @@ def cmd_gallery(args, cfg):
     return 0
 
 
+def cmd_inspect(args, cfg):
+    roots = [Path(p).expanduser() for p in args.paths]
+    for root in roots:
+        if not root.exists():
+            sys.exit(f"no such path: {root}")
+    files = survey.image_files(roots)
+    if not files:
+        print("no image files found")
+        return 0
+    frames = meta.read(files)
+    archive = Path(args.dest).expanduser() if args.dest else cfg.archive
+
+    for g in survey.group(frames):
+        exts = ", ".join(f"{n} {e}" for e, n in g.extensions.items())
+        print(f"{g.label}: {len(g.frames)} file(s) ({exts})")
+        print(f"  {g.first:%Y-%m-%d %H:%M} .. {g.last:%Y-%m-%d %H:%M}")
+        if g.lenses:
+            print("  lens: " + ", ".join(f"{lens} x{n}" for lens, n in g.lenses.items()))
+        if g.undated:
+            print(f"  {len(g.undated)} file(s) have no EXIF date; dated by file mtime, do not trust")
+        camera = cfg.camera_by_model(g.model)
+        if camera:
+            print(f"  matches camera '{camera.id}' in the config")
+        elif g.model:
+            print(f'  no [[cameras]] profile has model = "{g.model}"')
+        for day, n in g.days.items():
+            line = f"  {day}  {n:4d} file(s)"
+            if camera:
+                line += f"  -> {paths.shoot_dir(archive, camera.id, day)}"
+            print(line)
+        if args.files:
+            for f in sorted(g.frames, key=lambda f: (f.captured, f.path)):
+                flag = "" if f.dated_from == "exif" else f"  [{f.dated_from}]"
+                print(f"    {f.captured:%Y-%m-%d %H:%M:%S}  {f.path}{flag}")
+        print()
+
+    skipped = len(files) - len(frames)
+    print(f"{len(frames)} file(s) read" + (f", {skipped} unreadable by exiftool" if skipped else ""))
+    return 0
+
+
+def cmd_review(args, cfg):
+    host = "0.0.0.0" if args.lan else "127.0.0.1"
+    review.serve(args.target, cfg, host=host, port=args.port, open_browser=not args.no_browser)
+    return 0
+
+
 def cmd_sync(args, cfg):
     return sync.run(cfg, args.which, args.dry_run, args.delete)
 
@@ -116,6 +163,19 @@ def main(argv=None):
     derive_args(sp)
     sp.add_argument("--no-index", action="store_true", help="skip the parent index pages")
     sp.set_defaults(func=cmd_gallery)
+
+    sp = sub.add_parser("inspect", help="what cameras and dates are in a folder of unsorted originals")
+    sp.add_argument("paths", nargs="+", help="folders (or files) to survey")
+    sp.add_argument("--dest", help="archive root to suggest destinations under (default: from config)")
+    sp.add_argument("--files", action="store_true", help="also list every file with its capture time")
+    sp.set_defaults(func=cmd_inspect)
+
+    sp = sub.add_parser("review", help="browse the ingested days in the browser to keep, reject, rate and group")
+    sp.add_argument("target", nargs="?", help="open one day directly: a date (2026-09-13) or a folder; default is the day list")
+    sp.add_argument("--port", type=int, default=8765)
+    sp.add_argument("--lan", action="store_true", help="listen on all interfaces so a tablet on the LAN can join")
+    sp.add_argument("--no-browser", action="store_true", help="don't open a browser tab")
+    sp.set_defaults(func=cmd_review)
 
     sp = sub.add_parser("sync", help="rsync the archive and web trees to the NAS")
     sp.add_argument("which", nargs="?", choices=["archive", "web", "both"], default="both")

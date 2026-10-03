@@ -25,6 +25,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 package-dir = {"" = "src"}
 packages = ["photoflow"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+photoflow = ["static/**/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]

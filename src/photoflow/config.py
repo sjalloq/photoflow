@@ -40,6 +40,10 @@ DEFAULTS = {
         "frame": {"long_edge": 1920, "quality": 88, "sharpen": "light"},
         "thumb": {"long_edge": 400, "quality": 80, "sharpen": "light"},
     },
+    "review": {
+        # A day counts as reviewed once this share of its frames has a decision.
+        "done_at": 0.8,
+    },
 }
 
 EXAMPLE = '''# photoflow configuration.
@@ -76,6 +80,9 @@ sharpen   = "light"
 long_edge = 400
 quality   = 80
 sharpen   = "light"
+
+[review]
+done_at = 0.8                    # share of frames decided before a day counts as reviewed
 '''
 
 
@@ -113,6 +120,7 @@ class Config:
         self.sync = data["sync"]
         self.cameras = [Camera(c) for c in data["cameras"]]
         self.presets = data["derive"]
+        self.review = data["review"]
 
     def camera(self, camera_id):
         for cam in self.cameras:

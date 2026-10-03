@@ -41,7 +41,7 @@ def sources(directory, prefer="auto"):
 
 
 # Directories that are part of a shoot rather than shoots in their own right.
-INTERNAL = {"raw", "jpg", "thumbs", "web"}
+INTERNAL = {"raw", "jpg", "thumb", "thumbs", "web"}
 
 
 def shoot_dirs(roots, archive):

@@ -18,7 +18,7 @@ needs to *change* the code safely.
 uv sync --extra dev              # create/refresh .venv
 uv run pytest -q                 # unit tests: no card, no images needed
 uv run photoflow status          # smoke test against a real card
-uv tool install . --force        # install to PATH as `photoflow`
+uv tool install . --force --reinstall   # install to PATH as `photoflow`; without --reinstall uv reuses its cached 0.1.0 build
 ```
 
 Develop with `uv run photoflow …` (runs the working copy). `uv tool install` is
@@ -37,7 +37,25 @@ imaging.py   the ImageMagick command builder (see Related)
 derive.py    walk the archive, mirror it into the web root
 gallery.py   render derivatives + self-contained index.html pages
 sync.py      rsync wrapper
+survey.py    group [Frame] by camera body and day, for `inspect` (pure, like paths.py)
+review.py    stdlib HTTP server behind `review`: lists day folders, serves static/ + thumb/ + web/, writes review.json
+static/      the built review SPA (from web/, see below); shipped in the wheel
 ```
+
+`web/` is the review UI: Vite + React + TypeScript, using react-photo-album
+for the grid and yet-another-react-lightbox for full size. Build it with
+`npm run build` in `web/` (writes `src/photoflow/static/`) before
+`uv tool install`. Decisions are one `review.json` per day folder; `push` (not
+yet written) will turn them into XMP sidecars and archive folders. The day list
+and its "reviewed" state are derived on every request (tree walk + share of
+frames with a decision, `[review] done_at`); do not add a stored "done" flag or
+an index of days. Every route that takes a name from the browser looks the day
+up by key and checks the file name *after* URL-decoding.
+
+**Direction (Sept 2026):** the local tree is an *inbox* of day folders
+(`camera/YYYY-MM-DD/{raw,jpg,web,thumb}`), reviewed in the browser, then pushed
+to the NAS archive as event folders. The `gallery` module is to be retired in
+favour of `review`. The NAS's existing `eos5d/`, `eos5d3/` trees stay as they are.
 
 **Layering:** `paths.py` decides *where things go* and is pure — no I/O, no
 subprocesses. `ingest.py` decides *what to do about it* and touches disk. Keep
@@ -106,9 +124,10 @@ Check portrait frames survive: an EXIF orientation-6 source is 4928x3264
 
 ## Conventions
 
-- Python ≥3.11 (stdlib `tomllib`), **no runtime dependencies**. `exiftool`,
-  `magick` and `rsync` are external binaries; check with `shutil.which` and exit
-  with the pacman command that installs them.
+- Python ≥3.11 (stdlib `tomllib`). The Python side has no runtime dependencies
+  so far, but that is no longer a rule: pull in a library when it earns its
+  place. `exiftool`, `magick` and `rsync` are external binaries; check with
+  `shutil.which` and exit with the pacman command that installs them.
 - Comments explain *why*, especially where a decision looks arbitrary but was
   paid for (see Gotchas). Don't narrate what the code plainly does.
 - User-facing output is plain `print` — no progress bars, no colour library.

@@ -20,6 +20,8 @@ TAGS = [
     "-FileModifyDate",
     "-Make",
     "-Model",
+    "-SerialNumber",
+    "-LensModel",
 ]
 
 # exiftool's date format, and the same with a trailing timezone offset that
@@ -37,6 +39,11 @@ class Frame:
     make: str
     model: str
     dated_from: str  # which tag the timestamp came from
+    # Body serial and lens: not needed to file a frame, but they are what
+    # separates two bodies of the same model when sorting an old, unlabelled
+    # folder (see survey.py).
+    serial: str = ""
+    lens: str = ""
 
     @property
     def stem(self):
@@ -121,6 +128,8 @@ def read(paths, chunk=400):
                 make=str(record.get("Make", "") or ""),
                 model=str(record.get("Model", "") or ""),
                 dated_from=source,
+                serial=str(record.get("SerialNumber", "") or ""),
+                lens=str(record.get("LensModel", "") or ""),
             )
         )
     return frames

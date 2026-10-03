@@ -59,6 +59,8 @@ photoflow status                       # what's on the card, what's already arch
 photoflow ingest --name "brighton beach"
 photoflow gallery                      # derivatives + browsable index.html
 photoflow sync web                     # rsync to the NAS
+photoflow inspect ~/to_sort/tmp        # which cameras and days are in an unlabelled folder
+photoflow review                        # triage the ingested days in the browser
 ```
 
 ### status
@@ -108,6 +110,45 @@ over the year and camera folders too, so the whole tree is browsable from the to
 ### sync
 
 `rsync -a` to the targets in the config. `--delete` is opt-in and never implied.
+
+### review
+
+```bash
+photoflow review                 # the day list, in the browser
+photoflow review 2026-09-13      # straight into one day (a date, a name or a folder)
+```
+
+Starts a local server and opens the day list: every ingested day under the
+archive root with a strip of thumbnails, how many frames have a decision, and
+whether it is new, in progress or reviewed. Sort it by capture date, ingest
+date, review % or size. Nothing is stored about the list itself — it is a walk
+of the tree — and a day counts as reviewed once 80% of its frames have a
+decision (`[review] done_at` in the config), so opening a day to find one
+photograph does not mark it done.
+
+`thumb/` and `web/` are rendered beside `raw/` and `jpg/` in the background
+when the server starts (a minute or so for a full card). Clicking a day gives a
+keyboard-driven grid: arrows move, shift or ctrl-click selects, <kbd>x</kbd>
+rejects, <kbd>k</kbd> keeps, <kbd>1</kbd>–<kbd>5</kbd> rates, <kbd>f</kbd>
+favourites, <kbd>g</kbd> assigns a group (an event name that later becomes an
+archive folder), <kbd>space</kbd> opens full size. "Keep the rest" marks every
+undecided frame as a keep, which is the usual way to finish a day. Every
+decision is written straight to `review.json` in the day folder. `--lan`
+listens on all interfaces so a tablet on the same network can join in.
+
+The UI is built from `web/` with `npm run build`; the result ships inside the
+package, so an installed photoflow needs no Node.
+
+### inspect
+
+Read-only. For a folder of originals with no record of where they came from:
+reads the EXIF of every image under it (any camera, any RAW format) and prints
+one block per camera body — model and serial, lens use, the span of dates, and a
+count per capture day. Files with no EXIF date are called out rather than
+silently dated by mtime. Where the model matches a `[[cameras]]` profile, each
+day is shown with the archive folder `ingest` would file it into; otherwise it
+tells you the `model` string to put in a new profile. `--files` lists every
+frame with its capture time.
 
 ## Configuration
 
