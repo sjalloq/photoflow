@@ -139,6 +139,22 @@ listens on all interfaces so a tablet on the same network can join in.
 The UI is built from `web/` with `npm run build`; the result ships inside the
 package, so an installed photoflow needs no Node.
 
+### purge
+
+```bash
+photoflow purge -n               # list what a review rejected, delete nothing
+photoflow purge                  # delete it, after a y/N prompt
+photoflow purge ~/Pictures/Archive/grii/2026/2026-09-13 -y   # one day, no prompt
+```
+
+Pressing <kbd>x</kbd> in `review` only records the decision; the files stay
+put so it can be undone. `purge` makes it final: for every rejected frame it
+deletes the DNG, the JPEG and the `thumb/` and `web/` derivatives, drops the
+frame from `review.json` and lists it under `purged` there. It never touches
+a frame with any other decision, or an undecided one, and the `-2` twin of a
+rejected name is a different photograph and is left alone. Stop `review`
+first, or at least close the day in the browser.
+
 ### inspect
 
 Read-only. For a folder of originals with no record of where they came from:

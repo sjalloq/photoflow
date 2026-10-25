@@ -8,6 +8,7 @@ Immich without any further mapping.
 """
 
 import concurrent.futures
+import os
 from pathlib import Path
 
 from . import imaging, paths
@@ -118,7 +119,16 @@ def render(shoot, dest, preset, prefer="auto", subdir=None, jobs=4, force=False,
             sharpen=preset.get("sharpen", "medium"),
             quality=preset.get("quality", 90),
         )
-        return f"  FAILED {src.name}: {error}" if error else None
+        if error:
+            return f"  FAILED {src.name}: {error}"
+        # Stamp the derivative with its original's mtime rather than "now". A
+        # card's FAT timestamps carry no timezone, so a frame shot minutes ago
+        # can be dated an hour ahead of the wall clock; a derivative dated by
+        # the clock would then look stale, and be rendered again, on every run
+        # until the clock caught up.
+        stat = src.stat()
+        os.utime(out, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+        return None
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
         for line in pool.map(one, jobs_list):

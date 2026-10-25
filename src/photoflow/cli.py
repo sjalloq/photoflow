@@ -1,10 +1,10 @@
-"""Command-line entry point: photoflow <ingest|derive|gallery|sync|status|inspect|review>."""
+"""Command-line entry point: photoflow <ingest|derive|gallery|sync|status|inspect|review|purge>."""
 
 import argparse
 import sys
 from pathlib import Path
 
-from . import __version__, card, config, derive, gallery, ingest, meta, paths, review, survey, sync
+from . import __version__, card, config, derive, gallery, ingest, meta, paths, purge, review, survey, sync
 
 
 def cmd_status(args, cfg):
@@ -118,6 +118,10 @@ def cmd_review(args, cfg):
     return 0
 
 
+def cmd_purge(args, cfg):
+    return purge.run(_targets(args, cfg), args.dry_run, args.yes)
+
+
 def cmd_sync(args, cfg):
     return sync.run(cfg, args.which, args.dry_run, args.delete)
 
@@ -176,6 +180,12 @@ def main(argv=None):
     sp.add_argument("--lan", action="store_true", help="listen on all interfaces so a tablet on the LAN can join")
     sp.add_argument("--no-browser", action="store_true", help="don't open a browser tab")
     sp.set_defaults(func=cmd_review)
+
+    sp = sub.add_parser("purge", help="delete the frames a review rejected (originals and derivatives)")
+    sp.add_argument("paths", nargs="*", help="day folders (default: every day under the archive root)")
+    sp.add_argument("-n", "--dry-run", action="store_true", help="list what would go, delete nothing")
+    sp.add_argument("-y", "--yes", action="store_true", help="don't ask for confirmation")
+    sp.set_defaults(func=cmd_purge)
 
     sp = sub.add_parser("sync", help="rsync the archive and web trees to the NAS")
     sp.add_argument("which", nargs="?", choices=["archive", "web", "both"], default="both")

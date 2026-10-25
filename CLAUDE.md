@@ -37,6 +37,7 @@ imaging.py   the ImageMagick command builder (see Related)
 derive.py    walk the archive, mirror it into the web root
 gallery.py   render derivatives + self-contained index.html pages
 sync.py      rsync wrapper
+purge.py     delete the frames review.json marks as rejected; victims() is pure, run() unlinks
 survey.py    group [Frame] by camera body and day, for `inspect` (pure, like paths.py)
 review.py    stdlib HTTP server behind `review`: lists day folders, serves static/ + thumb/ + web/, writes review.json
 static/      the built review SPA (from web/, see below); shipped in the wheel
@@ -99,6 +100,11 @@ that split: it is what makes the naming rules testable without a card.
   start; a card holds hundreds of frames. Preserve the batching in `meta.read()`.
 - **Resample in linear RGB, sharpen back in sRGB.** ImageMagick otherwise resizes
   gamma-encoded sRGB, which darkens fine detail.
+- **A derivative is stamped with its original's mtime, not the time it was
+  rendered.** FAT timestamps carry no timezone, so a frame ingested minutes
+  after it was shot can be dated an hour ahead of the wall clock. Judged against
+  "now", its thumbnail looked stale and was re-rendered on every visit to the
+  day until the clock caught up. There is a regression test.
 - **Timestamps are used as the camera wrote them, with no timezone conversion.**
   Converting would move frames between days for no gain.
 
